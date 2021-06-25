@@ -18,11 +18,20 @@
   },
   "homepage": "https://github.com/pondersource/quickbooks-storecove-bridge#readme",
   "dependencies": {
+    "@datafire/storecove": "^6.0.0",
     "body-parser": "^1.19.0",
     "dotenv": "^10.0.0",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
     "intuit-oauth": "^4.0.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "storecove-client": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.19.0",
+    "@types/express": "^4.17.12",
+    "openapi-typescript-codegen": "^0.9.3",
+    "ts-node-dev": "^1.1.6",
+    "typescript": "^4.3.4"
   }
 }
