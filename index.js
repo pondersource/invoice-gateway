@@ -1,5 +1,7 @@
 'use strict';
 
+require('dotenv').config()
+
 /**
  * Require the dependencies
  * @type {*|createApplication}
@@ -10,6 +12,7 @@ const app = express();
 const path = require('path');
 const OAuthClient = require('intuit-oauth');
 const bodyParser = require('body-parser');
+const fetch = require('node-fetch');
 const ngrok = process.env.NGROK_ENABLED === 'true' ? require('ngrok') : null;
 
 /**
@@ -105,23 +108,45 @@ app.get('/refreshAccessToken', function (req, res) {
 /**
  * getCompanyInfo ()
  */
-app.get('/getCompanyInfo', function (req, res) {
+app.get('/getCompanyInfo', async function (req, res) {
   const companyID = oauthClient.getToken().realmId;
 
   const url =
     oauthClient.environment == 'sandbox'
       ? OAuthClient.environment.sandbox
       : OAuthClient.environment.production;
+  try {
+    const qboResponse = await oauthClient
+      .makeApiCall({ url: `${url}v3/company/${companyID}/companyinfo/${companyID}` });
 
-  oauthClient
-    .makeApiCall({ url: `${url}v3/company/${companyID}/companyinfo/${companyID}` })
-    .then(function (authResponse) {
-      console.log(`The response for API call is :${JSON.stringify(authResponse)}`);
-      res.send(JSON.parse(authResponse.text()));
-    })
-    .catch(function (e) {
-      console.error(e);
+    // console.log(`The response for API call is :${JSON.stringify(qboResponse)}`);
+    const currentUserCompanyInfo = JSON.parse(qboResponse.text());
+    console.log('qbo response', JSON.stringify(currentUserCompanyInfo, null, 2));
+    // create the company of the currently OAUthed-in QBO user at Storecove:
+    const bodyObj = {
+      tenant_id: companyID,
+      party_name: currentUserCompanyInfo.CompanyInfo.LegalName,
+      line1: currentUserCompanyInfo.CompanyInfo.LegalAddr.Line1,
+      city: currentUserCompanyInfo.CompanyInfo.LegalAddr.City,
+      zip: currentUserCompanyInfo.CompanyInfo.LegalAddr.PostalCode,
+      country: currentUserCompanyInfo.CompanyInfo.LegalAddr.Country,
+    };
+    console.log(currentUserCompanyInfo.CompanyInfo, bodyObj)
+    const scRes = await fetch('https://api.storecove.com/api/v2/legal_entities/', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.STORECOVE_API_KEY}`
+      },
+      body: JSON.stringify(bodyObj)
     });
+    const json = await scRes.json();
+    console.log('storecove response', json);
+    res.send('ok');
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 /**
