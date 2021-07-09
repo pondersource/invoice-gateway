@@ -1,5 +1,9 @@
-# quickbooks-storecove-bridge
-Exploring how to bridge between Quickbooks and Storecove in Node.js
+# invoice-gateway
+
+*** UNDER CONSTRUCTION ***
+
+GUI for setting up a connection between your bookkeeping system and your Peppol provider.
+To be combined with https://github.com/pondersource/node-peppol for handling the webhook execution.
 
 ```sh
 heroku run node queryStorecoveApi.js --app=quickbooks-storecove-bridge
